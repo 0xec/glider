@@ -23,9 +23,9 @@ builds:
       # - mips64
       # - mips64le
       # - riscv64
-    # goamd64:
-    #   - v1
-    #   - v3
+    goamd64:
+      # - v1
+      - v4
     # goarm:
     #   - 6
     #   - 7
