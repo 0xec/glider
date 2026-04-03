@@ -7,6 +7,9 @@ on:
       - "*"
   pull_request:
 
+permissions:
+  contents: write
+
 env:
   APP_NAME: glider
   DOCKERHUB_REPO: nadoo/glider
@@ -52,8 +55,6 @@ jobs:
           name: ${{ env.APP_NAME }}-dev-${{ env.SHA_SHORT }}
           path: |
             ./dist/default_linux_amd64_v1/${{ env.APP_NAME }}
-            ./dist/default_linux_arm64/${{ env.APP_NAME }}
-            ./dist/default_darwin_arm64/${{ env.APP_NAME }}
             ./dist/default_windows_amd64_v1/${{ env.APP_NAME }}.exe
 
       - name: Release
@@ -61,6 +62,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Binaries To Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            ./dist/default_linux_amd64_v1/${{ env.APP_NAME }}
+            ./dist/default_windows_amd64_v1/${{ env.APP_NAME }}.exe
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
