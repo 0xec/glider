@@ -54,8 +54,8 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-dev-${{ env.SHA_SHORT }}
           path: |
-            ./dist/default_linux_amd64_v1/${{ env.APP_NAME }}
-            ./dist/default_windows_amd64_v1/${{ env.APP_NAME }}.exe
+            ./dist/default_linux_amd64_v4/${{ env.APP_NAME }}
+            ./dist/default_windows_amd64_v4/${{ env.APP_NAME }}.exe
 
       - name: Release
         uses: goreleaser/goreleaser-action@v6
@@ -71,8 +71,8 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            ./dist/default_linux_amd64_v1/${{ env.APP_NAME }}
-            ./dist/default_windows_amd64_v1/${{ env.APP_NAME }}.exe
+            ./dist/default_linux_amd64_v4/${{ env.APP_NAME }}
+            ./dist/default_windows_amd64_v4/${{ env.APP_NAME }}.exe
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
