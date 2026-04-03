@@ -13,16 +13,16 @@ builds:
       - linux
     #   - darwin
     #   - freebsd
-    # goarch:
-    #   - 386
-    #   - amd64
-    #   - arm
-    #   - arm64
-    #   - mips
-    #   - mipsle
-    #   - mips64
-    #   - mips64le
-    #   - riscv64
+    goarch:
+      # - 386
+      - amd64
+      # - arm
+      # - arm64
+      # - mips
+      # - mipsle
+      # - mips64
+      # - mips64le
+      # - riscv64
     # goamd64:
     #   - v1
     #   - v3
