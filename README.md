@@ -41,6 +41,13 @@ we can set up local listeners as proxy servers, and forward requests to internet
 - Services: 
   - dhcpd: a simple dhcp server that can run in failover mode
 
+## Changelog
+
+- 2026-04-30
+  - Added AnyTLS client support for forwarders.
+  - Added AnyTLS TCP forwarding and UDP-over-TCP forwarding through multiplexed TLS sessions.
+  - Added `anytls://password@host:port` URI support with `sni`/`serverName`, `insecure`/`skipVerify`, `cert`, and session pool options.
+
 ## Protocols
 
 <details>
@@ -49,6 +56,7 @@ we can set up local listeners as proxy servers, and forward requests to internet
 |Protocol       | Listen/TCP |  Listen/UDP | Forward/TCP | Forward/UDP | Description
 |:-:            |:-:|:-:|:-:|:-:|:-
 |Mixed          |√|√| | |http+socks5 server
+|AnyTLS         | | |√|√|client only
 |HTTP           |√| |√| |client & server
 |SOCKS5         |√|√|√|√|client & server
 |SS             |√|√|√|√|client & server
@@ -197,8 +205,8 @@ URL:
          -forward socks5://serverA:1080,socks5://serverB:1080           (proxy chain)
 
 SCHEME:
-   listen : http kcp mixed pxyproto redir redir6 smux sni socks5 ss tcp tls tproxy trojan trojanc udp unix vless vsock ws wss
-   forward: direct http kcp reject simple-obfs smux socks4 socks4a socks5 ss ssh ssr tcp tls trojan trojanc udp unix vless vmess vsock ws wss
+  listen : http kcp mixed pxyproto redir redir6 smux sni socks5 ss tcp tls tproxy trojan trojanc udp unix vless vsock ws wss
+  forward: anytls direct http kcp reject simple-obfs smux socks4 socks4a socks5 ss ssh ssr tcp tls trojan trojanc udp unix vless vmess vsock ws wss
 
    Note: use 'glider -scheme all' or 'glider -scheme SCHEME' to see help info for the scheme.
 
@@ -235,6 +243,12 @@ glider 0.16.4, https://github.com/nadoo/glider (glider.proxy@gmail.com)
 <summary><code>glider -scheme all</code></summary>
 
 ```bash
+AnyTLS client scheme:
+  anytls://password@host:port[?sni=SERVERNAME][&insecure=1][&cert=PATH]
+  anytls://password@host:port[?serverName=SERVERNAME][&skipVerify=true][&cert=PATH]
+  anytls://password@host:port[?minIdleSession=5][&idleSessionCheckInterval=30s][&idleSessionTimeout=30s]
+
+--
 Direct scheme:
   direct://
 
@@ -415,6 +429,9 @@ Examples:
   
   glider -verbose -dns=:53 -dnsserver=8.8.8.8:53 -forward socks5://serverA:1080 -dnsrecord=abc.com/1.2.3.4
     -dns over proxy: listen on :53 as dns server, forward to 8.8.8.8:53 via socks5 server.
+
+  glider -listen socks5://:1080 -forward anytls://password@example.com:443?sni=cdn.example.com
+    -forward requests through an AnyTLS server.
 ```
 
 </details>
@@ -518,6 +535,8 @@ glider -config CONFIG_PATH
 
   ``` bash
   forward=socks5://1.1.1.1:1080,tls://server.com:443,vmess://5a146038-0b56-4e95-b1dc-5c6f5a32cd98@?alterID=2
+
+  forward=anytls://password@server.com:443?sni=cdn.example.com
   ```
 
 - Chain protocols in listener: https proxy server
