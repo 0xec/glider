@@ -108,7 +108,7 @@ func NewClient(uuidStr, security string, alterID int, aead bool) (*Client, error
 	case "zero":
 		c.security = SecurityNone
 		c.opt = OptBasicFormat
-	case "":
+	case "", "auto":
 		c.security = SecurityChacha20Poly1305
 		if runtime.GOARCH == "amd64" || runtime.GOARCH == "s390x" || runtime.GOARCH == "arm64" {
 			c.security = SecurityAES128GCM
