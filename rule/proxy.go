@@ -154,3 +154,15 @@ func (p *Proxy) Check() {
 		fwdrGroup.Check()
 	}
 }
+
+// StatusSnapshot returns current forward group statuses.
+func (p *Proxy) StatusSnapshot() []GroupStatus {
+	statuses := make([]GroupStatus, 0, len(p.all)+1)
+	statuses = append(statuses, p.main.Snapshot())
+
+	for _, fwdrGroup := range p.all {
+		statuses = append(statuses, fwdrGroup.Snapshot())
+	}
+
+	return statuses
+}

@@ -11,6 +11,7 @@ import (
 	"github.com/nadoo/glider/pkg/log"
 	"github.com/nadoo/glider/pkg/pool"
 	"github.com/nadoo/glider/proxy"
+	"github.com/nadoo/glider/stats"
 )
 
 var nm sync.Map
@@ -105,6 +106,8 @@ func (s *TProxy) ListenAndServeUDP() {
 
 // serveSession serves a udp session.
 func (s *TProxy) serveSession(session *session) {
+	sourceIP := stats.SourceIP(session.src)
+
 	dstPC, dialer, err := s.proxy.DialUDP("udp", session.dst.String())
 	if err != nil {
 		log.F("[tproxyu] dial to %s error: %v", session.dst, err)
@@ -142,8 +145,11 @@ func (s *TProxy) serveSession(session *session) {
 				break
 			}
 
-			_, err = srcPC.WriteTo(buf[:n], session.src)
+			written, err := srcPC.WriteTo(buf[:n], session.src)
 			srcPC.Close()
+			if written > 0 {
+				stats.AddDownload(sourceIP, written)
+			}
 
 			if err != nil {
 				break
@@ -159,7 +165,10 @@ func (s *TProxy) serveSession(session *session) {
 	for {
 		select {
 		case msg := <-session.msgCh:
-			_, err = dstPC.WriteTo(msg.msg, msg.dst)
+			written, err := dstPC.WriteTo(msg.msg, msg.dst)
+			if written > 0 {
+				stats.AddUpload(sourceIP, written)
+			}
 			if err != nil {
 				log.F("[tproxyu] writeTo %s error: %v", msg.dst, err)
 			}

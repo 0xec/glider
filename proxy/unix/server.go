@@ -10,6 +10,7 @@ import (
 	"github.com/nadoo/glider/pkg/log"
 	"github.com/nadoo/glider/pkg/pool"
 	"github.com/nadoo/glider/proxy"
+	"github.com/nadoo/glider/stats"
 )
 
 var nm sync.Map
@@ -140,6 +141,8 @@ func (s *Unix) ServePacket(pc net.PacketConn) {
 }
 
 func (s *Unix) serveSession(session *Session) {
+	sourceIP := stats.SourceIP(session.src)
+
 	dstPC, dialer, err := s.proxy.DialUDP("udp", "")
 	if err != nil {
 		log.F("[unix] remote dial error: %v", err)
@@ -149,7 +152,9 @@ func (s *Unix) serveSession(session *Session) {
 	defer dstPC.Close()
 
 	go func() {
-		proxy.CopyUDP(session.srcPC, session.src, dstPC, 2*time.Minute, 5*time.Second)
+		proxy.CopyUDPWithObserver(session.srcPC, session.src, dstPC, 2*time.Minute, 5*time.Second, func(written int) {
+			stats.AddDownload(sourceIP, written)
+		})
 		nm.Delete(session.key)
 		close(session.finCh)
 	}()
@@ -159,7 +164,10 @@ func (s *Unix) serveSession(session *Session) {
 	for {
 		select {
 		case p := <-session.msgCh:
-			_, err = dstPC.WriteTo(p, nil)
+			written, err := dstPC.WriteTo(p, nil)
+			if written > 0 {
+				stats.AddUpload(sourceIP, written)
+			}
 			if err != nil {
 				log.F("[unix] writeTo error: %v", err)
 			}
